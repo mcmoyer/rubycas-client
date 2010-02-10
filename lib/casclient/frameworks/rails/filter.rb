@@ -9,6 +9,7 @@ module CASClient
         @@client = nil
         @@log = nil
         @@fake_user = nil
+        @@fake_extra_attributes = nil
         
         
         class << self
@@ -19,6 +20,7 @@ module CASClient
             if @@fake_user
               controller.session[client.username_session_key] = @@fake_user
               controller.session[:casfilteruser] = @@fake_user
+              controller.session[:cas_extra_attributes] = @@fake_extra_attributes
               return true
             end
             
@@ -144,7 +146,7 @@ module CASClient
           # with cucumber and other tools.
           # use like 
           #  CASClient::Frameworks::Rails::Filter.fake("homer")
-          def fake(username)
+          def fake(username,  attributes => {})
             @@fake_user = username
           end
           
