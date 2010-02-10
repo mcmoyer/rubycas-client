@@ -146,7 +146,7 @@ module CASClient
           # with cucumber and other tools.
           # use like 
           #  CASClient::Frameworks::Rails::Filter.fake("homer")
-          def fake(username,  attributes => {})
+          def fake(username,  attributes = {})
             @@fake_user = username
             @@fake_extra_attributes = attributes
           end
