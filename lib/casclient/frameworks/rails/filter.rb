@@ -148,6 +148,7 @@ module CASClient
           #  CASClient::Frameworks::Rails::Filter.fake("homer")
           def fake(username,  attributes => {})
             @@fake_user = username
+            @@fake_extra_attributes = attributes
           end
           
           def use_gatewaying?
