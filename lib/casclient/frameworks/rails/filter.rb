@@ -16,7 +16,6 @@ module CASClient
           def filter(controller)
             raise "Cannot use the CASClient filter because it has not yet been configured." if config.nil?
             
-            
             if @@fake_user
               controller.session[client.username_session_key] = @@fake_user
               controller.session[:casfilteruser] = @@fake_user
@@ -112,7 +111,7 @@ module CASClient
                 return true
               else
                 log.warn("Ticket #{st.ticket.inspect} failed validation -- #{vr.failure_code}: #{vr.failure_message}")
-                redirect_to_cas_for_authentication(controller)
+                unauthorized!(controller, vr)
                 return false
               end
             else # no service ticket was present in the request
@@ -130,9 +129,13 @@ module CASClient
                 end
               end
               
-              redirect_to_cas_for_authentication(controller)
+              unauthorized!(controller)
               return false
             end
+          rescue OpenSSL::SSL::SSLError
+            log.error("SSL Error: hostname was not match with the server certificate. You can try to disable the ssl verification with a :force_ssl_verification => false in your configurations file.")
+            unauthorized!(controller)
+            return false
           end
           
           def configure(config)
@@ -182,6 +185,18 @@ module CASClient
             delete_service_session_lookup(st) if st
             controller.send(:reset_session)
             controller.send(:redirect_to, client.logout_url(referer))
+          end
+          
+          def unauthorized!(controller, vr = nil)
+            if controller.params[:format] == "xml"
+              if vr
+                controller.send(:render, :xml => "<errors><error>#{vr.failure_message}</error></errors>", :status => 401)
+              else
+                controller.send(:head, 401)
+              end
+            else
+              redirect_to_cas_for_authentication(controller)
+            end
           end
           
           def redirect_to_cas_for_authentication(controller)
